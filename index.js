@@ -18,7 +18,7 @@ const drive = google.drive({
 
 const filePath = path.join(__dirname, "bounechada.JPG");
 
-async function uploadFile() {
+async function uploadFile(filePath) {
   try {
     const response = await drive.files.create({
       requestBody: {
@@ -31,39 +31,32 @@ async function uploadFile() {
       },
     });
     console.log(response.data);
+    return response.data.id;
   } catch (error) {
     console.log(error.message);
+    return null;
   }
 }
 
-async function deleteFile() {
+async function generatePublicUrl(fileId) {
   try {
-    const response = await drive.files.delete({
-      fileId: "1rl4-7KfLb7mmZMIMftt7JWqERn8pWUHP",
-    });
-  } catch (error) {
-    console.log(error.message);
-  }
-}
-
-async function generatePublicUrl() {
-  try {
-    await drive.permissions.create({
-      fileId: "1WOlay9gLbVQfjpJjEw2K2KqK1DggSRJV",
+    const response = await drive.permissions.create({
+      fileId: fileId,
       requestBody: {
         role: "reader",
         type: "anyone",
       },
     });
+    console.log(response.data);
   } catch (error) {
     console.log(error.message);
   }
 }
 
-async function getFileUrl() {
+async function getFileUrl(fileId) {
   try {
     const response = await drive.files.get({
-      fileId: "1WOlay9gLbVQfjpJjEw2K2KqK1DggSRJV",
+      fileId: fileId,
       fields: "webViewLink, webContentLink",
     });
     console.log(response.data);
@@ -72,4 +65,23 @@ async function getFileUrl() {
   }
 }
 
-getFileUrl();
+async function deleteFile(fileId) {
+  try {
+    const response = await drive.files.delete({
+      fileId: fileId,
+    });
+    console.log(response.status);
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+async function main() {
+  const fileId = await uploadFile(filePath);
+  if (!fileId) return;
+  await generatePublicUrl(fileId);
+  await getFileUrl(fileId);
+  await deleteFile(fileId);
+}
+
+main();
